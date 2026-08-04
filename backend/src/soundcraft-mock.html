@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Soundcraft Ui</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a1a; color: #ccc; font-family: 'Segoe UI', Arial, sans-serif; overflow-x: hidden; }
+
+  .header {
+    background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+    border-bottom: 1px solid #333;
+    padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header .logo { display: flex; align-items: center; gap: 10px; }
+  .header .logo span { font-size: 18px; font-weight: 700; color: #e0e0e0; letter-spacing: 1px; }
+  .header .logo small { font-size: 11px; color: #888; font-weight: 400; }
+  .header .nav { display: flex; gap: 2px; }
+  .header .nav button {
+    background: #333; border: 1px solid #444; color: #aaa; padding: 5px 14px;
+    font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .header .nav button.active { background: #0066cc; color: #fff; border-color: #0077ee; }
+  .header .nav button:hover { background: #444; }
+  .header .status { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 6px; }
+  .header .status .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .content { display: flex; flex-direction: column; height: calc(100vh - 78px); }
+  .mixer-area { display: flex; flex: 1; min-height: 0; }
+
+  .mixer { display: flex; padding: 10px; gap: 2px; overflow-x: auto; flex: 1; }
+
+  .channel {
+    min-width: 70px; background: #222; border: 1px solid #333; border-radius: 4px;
+    display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 6px;
+  }
+  .channel .name { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+  .channel .pan { width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(#555 0deg, #888 180deg, #555 360deg); border: 2px solid #444; position: relative; }
+  .channel .pan::after { content: ''; position: absolute; top: 2px; left: 50%; width: 2px; height: 10px; background: #eee; transform-origin: bottom center; border-radius: 1px; }
+
+  .channel .mute {
+    width: 36px; height: 18px; border-radius: 3px; font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; border: none;
+  }
+  .channel .mute.on { background: #dc2626; color: #fff; }
+  .channel .mute.off { background: #333; color: #666; }
+
+  .channel .solo {
+    width: 36px; height: 18px; border-radius: 3px; font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; border: none;
+    background: #333; color: #666;
+  }
+
+  .fader-track {
+    width: 8px; height: 140px; background: #111; border-radius: 4px; position: relative; margin: 4px 0;
+  }
+  .fader-knob {
+    width: 24px; height: 14px; background: linear-gradient(180deg, #eee 0%, #bbb 100%);
+    border-radius: 2px; position: absolute; left: 50%; transform: translateX(-50%);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5); cursor: grab;
+  }
+
+  .meter-track {
+    width: 6px; height: 140px; background: #111; border-radius: 3px; position: relative; overflow: hidden;
+  }
+  .meter-fill {
+    position: absolute; bottom: 0; width: 100%; border-radius: 3px;
+    transition: height 0.15s ease;
+  }
+  .meter-fill.green { background: linear-gradient(0deg, #166534, #22c55e); }
+  .meter-fill.yellow { background: linear-gradient(0deg, #166534, #22c55e 60%, #eab308 90%); }
+
+  .channel .db { font-size: 9px; color: #666; font-family: monospace; }
+  .fader-meter { display: flex; gap: 4px; align-items: stretch; }
+  .master { background: #1a1a2e; border-color: #334; }
+  .master .name { color: #60a5fa; }
+
+  /* ---- MEDIA PLAYER ---- */
+  .media-panel {
+    width: 280px; min-width: 280px;
+    background: #181820; border-left: 1px solid #333;
+    display: flex; flex-direction: column;
+  }
+  .media-header {
+    background: #222; padding: 8px 12px; border-bottom: 1px solid #333;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .media-header span { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 600; }
+  .media-header .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: #dc2626; }
+
+  .now-playing {
+    background: linear-gradient(135deg, #1a1a2e 0%, #1e1e2e 100%);
+    padding: 14px; border-bottom: 1px solid #2a2a3a;
+  }
+  .np-label { font-size: 9px; text-transform: uppercase; color: #555; letter-spacing: 1px; margin-bottom: 6px; }
+  .np-title { font-size: 13px; font-weight: 600; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-artist { font-size: 11px; color: #777; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .progress-bar { margin-top: 10px; }
+  .progress-track { height: 4px; background: #333; border-radius: 2px; overflow: hidden; cursor: pointer; }
+  .progress-fill { height: 100%; background: #0066cc; border-radius: 2px; transition: width 1s linear; }
+  .progress-times { display: flex; justify-content: space-between; font-size: 9px; color: #555; margin-top: 4px; font-family: monospace; }
+
+  .transport { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-bottom: 1px solid #333; }
+  .transport button {
+    width: 32px; height: 28px; border-radius: 4px; border: 1px solid #444;
+    background: #2a2a2a; color: #aaa; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .transport button:hover { background: #383838; color: #fff; }
+  .transport button.active { background: #0066cc; color: #fff; border-color: #0077ee; }
+  .transport .play-btn { width: 40px; height: 32px; font-size: 14px; }
+
+  .playlist { flex: 1; overflow-y: auto; }
+  .playlist-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; border-bottom: 1px solid #222; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .playlist-item:hover { background: #252530; }
+  .playlist-item.active { background: #1a1a3a; }
+  .playlist-item .idx { font-size: 10px; color: #555; width: 16px; text-align: right; font-family: monospace; }
+  .playlist-item .idx.playing { color: #0066cc; }
+  .playlist-item .track-info { flex: 1; min-width: 0; }
+  .playlist-item .track-name { font-size: 11px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .playlist-item.active .track-name { color: #e0e0e0; font-weight: 600; }
+  .playlist-item .track-artist { font-size: 9px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .playlist-item .track-dur { font-size: 9px; color: #555; font-family: monospace; }
+
+  .eq-viz { display: flex; align-items: flex-end; gap: 1px; height: 20px; padding: 0 12px 6px; }
+  .eq-bar { flex: 1; background: #0066cc; border-radius: 1px 1px 0 0; transition: height 0.15s; min-width: 2px; }
+
+  .bottom-bar {
+    background: #1e1e1e; border-top: 1px solid #333; padding: 6px 16px;
+    display: flex; justify-content: space-between; font-size: 10px; color: #666;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">
+    <span>SOUNDCRAFT</span>
+    <small>Ui24R</small>
+  </div>
+  <div class="nav">
+    <button class="active">MIX</button>
+    <button>AUX</button>
+    <button>FX</button>
+    <button>SUB</button>
+    <button>MEDIA</button>
+    <button>SETUP</button>
+  </div>
+  <div class="status">
+    <span class="dot"></span>
+    48kHz / 24bit
+  </div>
+</div>
+
+<div class="content">
+  <div class="mixer-area">
+    <div class="mixer" id="mixer"></div>
+
+    <div class="media-panel">
+      <div class="media-header">
+        <span>Media Player</span>
+        <div class="rec-dot"></div>
+      </div>
+
+      <div class="now-playing">
+        <div class="np-label">Tocando agora</div>
+        <div class="np-title" id="np-title">--</div>
+        <div class="np-artist" id="np-artist">--</div>
+        <div class="progress-bar">
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-times">
+            <span id="time-cur">0:00</span>
+            <span id="time-total">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button id="btn-prev" title="Anterior">&#9198;</button>
+        <button id="btn-stop" title="Parar">&#9632;</button>
+        <button id="btn-play" class="play-btn active" title="Play/Pause">&#9654;</button>
+        <button id="btn-next" title="Próxima">&#9197;</button>
+        <button id="btn-shuffle" title="Aleatório">&#8645;</button>
+        <button id="btn-repeat" title="Repetir">&#8634;</button>
+      </div>
+
+      <div class="eq-viz" id="eq-viz"></div>
+
+      <div class="playlist" id="playlist"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <span>Soundcraft Ui24R &mdash; Simulação</span>
+  <span id="clock"></span>
+</div>
+
+<script>
+// ===================== MIXER =====================
+const CHANNELS = [
+  { name: 'Voz', db: -6, mute: false },
+  { name: 'Guitar', db: -12, mute: false },
+  { name: 'Keys', db: -8, mute: false },
+  { name: 'Bass', db: -10, mute: false },
+  { name: 'Kick', db: -4, mute: false },
+  { name: 'Snare', db: -7, mute: false },
+  { name: 'HiHat', db: -14, mute: true },
+  { name: 'OH L', db: -16, mute: false },
+  { name: 'OH R', db: -16, mute: false },
+  { name: 'Tom 1', db: -18, mute: true },
+  { name: 'Tom 2', db: -18, mute: true },
+  { name: 'Aux', db: -20, mute: false },
+  { name: 'FX Ret', db: -22, mute: false },
+  { name: 'Media', db: -8, mute: false },
+];
+
+const mixer = document.getElementById('mixer');
+
+function faderPos(db) {
+  const pct = Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
+  return 140 - (pct / 100) * 126;
+}
+
+CHANNELS.forEach((ch, i) => {
+  const el = document.createElement('div');
+  el.className = 'channel';
+  el.innerHTML = `
+    <div class="name">${ch.name}</div>
+    <div class="pan" style="transform: rotate(${(Math.random()-0.5)*120}deg)"></div>
+    <button class="mute ${ch.mute ? 'on' : 'off'}">MUTE</button>
+    <button class="solo">SOLO</button>
+    <div class="fader-meter">
+      <div class="fader-track">
+        <div class="fader-knob" style="top:${faderPos(ch.db)}px"></div>
+      </div>
+      <div class="meter-track">
+        <div class="meter-fill ${ch.mute ? 'green' : (ch.db > -8 ? 'yellow' : 'green')}" id="meter-${i}" style="height:${ch.mute ? 0 : 30}%"></div>
+      </div>
+    </div>
+    <div class="db">${ch.db}dB</div>
+  `;
+  mixer.appendChild(el);
+});
+
+const masterEl = document.createElement('div');
+masterEl.className = 'channel master';
+masterEl.innerHTML = `
+  <div class="name">MASTER</div>
+  <div class="pan"></div>
+  <button class="mute off">MUTE</button>
+  <button class="solo">SOLO</button>
+  <div class="fader-meter">
+    <div class="fader-track">
+      <div class="fader-knob" style="top:${faderPos(-3)}px"></div>
+    </div>
+    <div class="meter-track">
+      <div class="meter-fill yellow" id="meter-master" style="height:60%"></div>
+    </div>
+  </div>
+  <div class="db">-3dB</div>
+`;
+mixer.appendChild(masterEl);
+
+setInterval(() => {
+  CHANNELS.forEach((ch, i) => {
+    const m = document.getElementById('meter-' + i);
+    if (m && !ch.mute) {
+      const base = ((ch.db + 60) / 60) * 80;
+      m.style.height = Math.max(5, base + (Math.random() - 0.5) * 20) + '%';
+    }
+  });
+  const mm = document.getElementById('meter-master');
+  if (mm) mm.style.height = (50 + (Math.random() - 0.5) * 15) + '%';
+}, 150);
+
+document.querySelectorAll('.mute').forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    if (i < CHANNELS.length) {
+      CHANNELS[i].mute = !CHANNELS[i].mute;
+      btn.className = 'mute ' + (CHANNELS[i].mute ? 'on' : 'off');
+      const m = document.getElementById('meter-' + i);
+      if (m && CHANNELS[i].mute) m.style.height = '0%';
+    }
+  });
+});
+
+// ===================== PLAYLIST =====================
+const PLAYLIST = [
+  { title: 'Tão Seu',                  artist: 'Skank',                 dur: 234 },
+  { title: 'Ainda Lembro',             artist: 'Marisa Monte',          dur: 263 },
+  { title: 'Anunciação',               artist: 'Alceu Valença',         dur: 218 },
+  { title: 'Evidências',               artist: 'Chitãozinho & Xororó', dur: 275 },
+  { title: 'Pro Dia Nascer Feliz',     artist: 'Barão Vermelho',        dur: 247 },
+  { title: 'Mais Uma Vez',             artist: 'Legião Urbana',         dur: 310 },
+  { title: 'Aquarela',                 artist: 'Toquinho',              dur: 258 },
+  { title: 'País Tropical',            artist: 'Jorge Ben Jor',         dur: 195 },
+  { title: 'Samba de Uma Nota Só',    artist: 'Tom Jobim',             dur: 207 },
+  { title: 'Garota de Ipanema',        artist: 'Tom Jobim & Vinicius',  dur: 312 },
+  { title: 'Wave',                     artist: 'Tom Jobim',             dur: 188 },
+  { title: 'Chega de Saudade',         artist: 'João Gilberto',        dur: 202 },
+  { title: 'Asa Branca',               artist: 'Luiz Gonzaga',          dur: 180 },
+  { title: 'Carcará',                 artist: 'Maria Bethânia',        dur: 221 },
+  { title: 'Tocando em Frente',        artist: 'Almir Sater',           dur: 246 },
+  { title: 'Romaria',                  artist: 'Renato Teixeira',       dur: 198 },
+  { title: 'Amor I Love You',          artist: 'Marisa Monte',          dur: 229 },
+  { title: 'Tempos Modernos',          artist: 'Lulu Santos',           dur: 254 },
+  { title: 'O Segundo Sol',            artist: 'Cássia Eller',         dur: 290 },
+  { title: 'Velha Infância',          artist: 'Tribalistas',           dur: 232 },
+];
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+let currentTrack = 0;
+let playing = true;
+let elapsed = 0;
+let shuffleOn = false;
+let repeatOn = false;
+
+const playlistEl = document.getElementById('playlist');
+const npTitle = document.getElementById('np-title');
+const npArtist = document.getElementById('np-artist');
+const progressFill = document.getElementById('progress-fill');
+const timeCur = document.getElementById('time-cur');
+const timeTotal = document.getElementById('time-total');
+const btnPlay = document.getElementById('btn-play');
+const btnStop = document.getElementById('btn-stop');
+const btnNext = document.getElementById('btn-next');
+const btnPrev = document.getElementById('btn-prev');
+const btnShuffle = document.getElementById('btn-shuffle');
+const btnRepeat = document.getElementById('btn-repeat');
+
+function renderPlaylist() {
+  playlistEl.innerHTML = '';
+  PLAYLIST.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'playlist-item' + (i === currentTrack ? ' active' : '');
+    el.innerHTML = `
+      <div class="idx ${i === currentTrack && playing ? 'playing' : ''}">${i === currentTrack && playing ? '&#9654;' : (i + 1)}</div>
+      <div class="track-info">
+        <div class="track-name">${t.title}</div>
+        <div class="track-artist">${t.artist}</div>
+      </div>
+      <div class="track-dur">${fmtTime(t.dur)}</div>
+    `;
+    el.addEventListener('click', () => { loadTrack(i); });
+    playlistEl.appendChild(el);
+  });
+}
+
+function loadTrack(idx) {
+  currentTrack = idx;
+  elapsed = 0;
+  playing = true;
+  btnPlay.innerHTML = '&#10074;&#10074;';
+  btnPlay.classList.add('active');
+  updateNowPlaying();
+  renderPlaylist();
+}
+
+function updateNowPlaying() {
+  const t = PLAYLIST[currentTrack];
+  npTitle.textContent = t.title;
+  npArtist.textContent = t.artist;
+  timeTotal.textContent = fmtTime(t.dur);
+}
+
+function nextTrack() {
+  if (shuffleOn) {
+    let r;
+    do { r = Math.floor(Math.random() * PLAYLIST.length); } while (r === currentTrack && PLAYLIST.length > 1);
+    loadTrack(r);
+  } else {
+    loadTrack((currentTrack + 1) % PLAYLIST.length);
+  }
+}
+
+function prevTrack() {
+  if (elapsed > 3) { elapsed = 0; return; }
+  loadTrack((currentTrack - 1 + PLAYLIST.length) % PLAYLIST.length);
+}
+
+btnPlay.addEventListener('click', () => {
+  playing = !playing;
+  btnPlay.innerHTML = playing ? '&#10074;&#10074;' : '&#9654;';
+  btnPlay.classList.toggle('active', playing);
+  renderPlaylist();
+});
+
+btnStop.addEventListener('click', () => {
+  playing = false;
+  elapsed = 0;
+  btnPlay.innerHTML = '&#9654;';
+  btnPlay.classList.remove('active');
+  renderPlaylist();
+});
+
+btnNext.addEventListener('click', nextTrack);
+btnPrev.addEventListener('click', prevTrack);
+
+btnShuffle.addEventListener('click', () => {
+  shuffleOn = !shuffleOn;
+  btnShuffle.classList.toggle('active', shuffleOn);
+});
+
+btnRepeat.addEventListener('click', () => {
+  repeatOn = !repeatOn;
+  btnRepeat.classList.toggle('active', repeatOn);
+});
+
+// Playback tick
+setInterval(() => {
+  if (!playing) return;
+  elapsed += 1;
+  const dur = PLAYLIST[currentTrack].dur;
+  if (elapsed >= dur) {
+    if (repeatOn) { elapsed = 0; }
+    else { nextTrack(); }
+    return;
+  }
+  const pct = (elapsed / dur) * 100;
+  progressFill.style.width = pct + '%';
+  timeCur.textContent = fmtTime(elapsed);
+}, 1000);
+
+// EQ visualizer bars
+const eqViz = document.getElementById('eq-viz');
+const EQ_BARS = 16;
+for (let i = 0; i < EQ_BARS; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'eq-bar';
+  bar.id = 'eq-' + i;
+  bar.style.height = '4px';
+  eqViz.appendChild(bar);
+}
+
+setInterval(() => {
+  for (let i = 0; i < EQ_BARS; i++) {
+    const bar = document.getElementById('eq-' + i);
+    if (bar) {
+      const h = playing ? (Math.random() * 16 + 3) : 2;
+      bar.style.height = h + 'px';
+      bar.style.opacity = playing ? '1' : '0.3';
+    }
+  }
+}, 120);
+
+// Clock
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+}, 1000);
+
+// Init
+loadTrack(0);
+</script>
+</body>
+</html>

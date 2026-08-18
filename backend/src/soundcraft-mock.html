@@ -6,21 +6,26 @@
 <title>Soundcraft Ui</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #1a1a1a; color: #ccc; font-family: 'Segoe UI', Arial, sans-serif; overflow-x: hidden; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: #1a1a1a; color: #ccc; font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex; flex-direction: column;
+  }
 
   .header {
     background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
     border-bottom: 1px solid #333;
-    padding: 8px 16px;
+    padding: 12px 20px;
     display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
   }
   .header .logo { display: flex; align-items: center; gap: 10px; }
-  .header .logo span { font-size: 18px; font-weight: 700; color: #e0e0e0; letter-spacing: 1px; }
-  .header .logo small { font-size: 11px; color: #888; font-weight: 400; }
-  .header .nav { display: flex; gap: 2px; }
+  .header .logo span { font-size: 22px; font-weight: 700; color: #e0e0e0; letter-spacing: 1px; }
+  .header .logo small { font-size: 13px; color: #888; font-weight: 400; }
+  .header .nav { display: flex; gap: 3px; }
   .header .nav button {
-    background: #333; border: 1px solid #444; color: #aaa; padding: 5px 14px;
-    font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+    background: #333; border: 1px solid #444; color: #aaa; padding: 7px 18px;
+    font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
   }
   .header .nav button.active { background: #0066cc; color: #fff; border-color: #0077ee; }
   .header .nav button:hover { background: #444; }
@@ -29,53 +34,59 @@
 
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  .content { display: flex; flex-direction: column; height: calc(100vh - 78px); }
+  .content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
   .mixer-area { display: flex; flex: 1; min-height: 0; }
 
-  .mixer { display: flex; padding: 10px; gap: 2px; overflow-x: auto; flex: 1; }
+  .mixer { display: flex; padding: 10px; gap: 2px; overflow-x: auto; overflow-y: hidden; flex: 1; min-height: 0; }
 
   .channel {
-    min-width: 70px; background: #222; border: 1px solid #333; border-radius: 4px;
-    display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 6px;
+    min-width: 84px; height: 100%; background: #222; border: 1px solid #333; border-radius: 5px;
+    display: flex; flex-direction: column; align-items: center; padding: 10px 6px; gap: 8px;
   }
-  .channel .name { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
-  .channel .pan { width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(#555 0deg, #888 180deg, #555 360deg); border: 2px solid #444; position: relative; }
-  .channel .pan::after { content: ''; position: absolute; top: 2px; left: 50%; width: 2px; height: 10px; background: #eee; transform-origin: bottom center; border-radius: 1px; }
+  .channel .name { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+  .channel .pan { width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(#555 0deg, #888 180deg, #555 360deg); border: 2px solid #444; position: relative; }
+  .channel .pan::after { content: ''; position: absolute; top: 3px; left: 50%; width: 2px; height: 12px; background: #eee; transform-origin: bottom center; border-radius: 1px; }
 
   .channel .mute {
-    width: 36px; height: 18px; border-radius: 3px; font-size: 9px; font-weight: 700;
+    width: 42px; height: 22px; border-radius: 3px; font-size: 10px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; cursor: pointer; border: none;
   }
   .channel .mute.on { background: #dc2626; color: #fff; }
   .channel .mute.off { background: #333; color: #666; }
 
   .channel .solo {
-    width: 36px; height: 18px; border-radius: 3px; font-size: 9px; font-weight: 700;
+    width: 42px; height: 22px; border-radius: 3px; font-size: 10px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; cursor: pointer; border: none;
     background: #333; color: #666;
   }
 
   .fader-track {
-    width: 8px; height: 140px; background: #111; border-radius: 4px; position: relative; margin: 4px 0;
+    width: 10px; background: #111; border-radius: 5px; position: relative; margin: 4px 0;
+    flex: 1; min-height: 0;
   }
   .fader-knob {
-    width: 24px; height: 14px; background: linear-gradient(180deg, #eee 0%, #bbb 100%);
+    width: 30px; height: 16px; background: linear-gradient(180deg, #eee 0%, #bbb 100%);
     border-radius: 2px; position: absolute; left: 50%; transform: translateX(-50%);
     box-shadow: 0 1px 3px rgba(0,0,0,0.5); cursor: grab;
   }
+  .fader-knob::after {
+    content: ''; position: absolute; top: 50%; left: 3px; right: 3px; height: 2px;
+    background: #777; transform: translateY(-50%);
+  }
 
   .meter-track {
-    width: 6px; height: 140px; background: #111; border-radius: 3px; position: relative; overflow: hidden;
+    width: 8px; background: #111; border-radius: 4px; position: relative; overflow: hidden;
+    flex: 1; min-height: 0;
   }
   .meter-fill {
-    position: absolute; bottom: 0; width: 100%; border-radius: 3px;
+    position: absolute; bottom: 0; width: 100%; border-radius: 4px;
     transition: height 0.15s ease;
   }
   .meter-fill.green { background: linear-gradient(0deg, #166534, #22c55e); }
   .meter-fill.yellow { background: linear-gradient(0deg, #166534, #22c55e 60%, #eab308 90%); }
 
-  .channel .db { font-size: 9px; color: #666; font-family: monospace; }
-  .fader-meter { display: flex; gap: 4px; align-items: stretch; }
+  .channel .db { font-size: 10px; color: #666; font-family: monospace; flex-shrink: 0; }
+  .fader-meter { display: flex; gap: 6px; align-items: stretch; flex: 1; min-height: 0; }
   .master { background: #1a1a2e; border-color: #334; }
   .master .name { color: #60a5fa; }
 
@@ -137,6 +148,7 @@
   .bottom-bar {
     background: #1e1e1e; border-top: 1px solid #333; padding: 6px 16px;
     display: flex; justify-content: space-between; font-size: 10px; color: #666;
+    flex-shrink: 0;
   }
 </style>
 </head>
@@ -225,9 +237,15 @@ const CHANNELS = [
 
 const mixer = document.getElementById('mixer');
 
+const FADER_KNOB_HEIGHT = 16;
+
+// Trilha do fader tem altura flexível (preenche o espaço disponível), então a posição
+// do cursor é expressa como calc(%, px) em vez de um valor fixo em pixels.
 function faderPos(db) {
   const pct = Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
-  return 140 - (pct / 100) * 126;
+  const topPct = 100 - pct;
+  const offsetPx = (topPct / 100) * FADER_KNOB_HEIGHT;
+  return `calc(${topPct}% - ${offsetPx}px)`;
 }
 
 CHANNELS.forEach((ch, i) => {
@@ -240,7 +258,7 @@ CHANNELS.forEach((ch, i) => {
     <button class="solo">SOLO</button>
     <div class="fader-meter">
       <div class="fader-track">
-        <div class="fader-knob" style="top:${faderPos(ch.db)}px"></div>
+        <div class="fader-knob" style="top:${faderPos(ch.db)}"></div>
       </div>
       <div class="meter-track">
         <div class="meter-fill ${ch.mute ? 'green' : (ch.db > -8 ? 'yellow' : 'green')}" id="meter-${i}" style="height:${ch.mute ? 0 : 30}%"></div>
@@ -260,7 +278,7 @@ masterEl.innerHTML = `
   <button class="solo">SOLO</button>
   <div class="fader-meter">
     <div class="fader-track">
-      <div class="fader-knob" style="top:${faderPos(-3)}px"></div>
+      <div class="fader-knob" style="top:${faderPos(-3)}"></div>
     </div>
     <div class="meter-track">
       <div class="meter-fill yellow" id="meter-master" style="height:60%"></div>

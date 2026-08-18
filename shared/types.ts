@@ -1,5 +1,7 @@
 export interface Telemetria {
   voltagem: number;
+  percentual: number;
+  horasRestantes: number | null;
   status: 'normal' | 'alerta' | 'critico' | 'desligado';
   fonteConectada: boolean;
   modo: 'development' | 'production';

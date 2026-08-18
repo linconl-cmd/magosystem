@@ -1,37 +1,73 @@
+import type { ReactNode } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { StatusBateria } from '@shared/types';
 import { StatusBar } from '../components/StatusBar';
+import { BatteryIcon } from '../components/BatteryIcon';
 import { STATUS_MAP } from '../lib/statusMap';
 import type { AppOutletContext } from '../types/outlet';
 
-function VoltageGauge({ voltage, percentual, status }: { voltage: number; percentual: number; status: StatusBateria }) {
+function BoltIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" />
+    </svg>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  unit,
+  style,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  unit: string;
+  style: (typeof STATUS_MAP)[StatusBateria];
+}) {
+  return (
+    <div className={`rounded-2xl p-6 ${style.bg} ring-1 ${style.ring} shadow-lg ${style.glow}`}>
+      {icon}
+      <p className="text-xs uppercase tracking-widest text-gray-400 mt-3">{label}</p>
+      <p className={`text-4xl font-bold tabular-nums ${style.color} mt-1`}>
+        {value}
+        <span className="text-lg ml-1 font-normal text-gray-500">{unit}</span>
+      </p>
+    </div>
+  );
+}
+
+function VoltageGauge({
+  voltage,
+  percentual,
+  status,
+  charging,
+}: {
+  voltage: number;
+  percentual: number;
+  status: StatusBateria;
+  charging: boolean;
+}) {
   const style = STATUS_MAP[status];
 
   return (
-    <div className={`relative rounded-2xl p-8 ${style.bg} ring-1 ${style.ring} shadow-lg ${style.glow}`}>
-      <div className="text-center">
-        <p className="text-sm uppercase tracking-widest text-gray-400 mb-2">Voltagem</p>
-        <div className="flex items-end justify-center gap-4">
-          <p className={`text-6xl font-bold tabular-nums ${style.color}`}>
-            {voltage.toFixed(2)}
-            <span className="text-2xl ml-1 font-normal text-gray-500">V</span>
-          </p>
-          <p className={`text-3xl font-semibold tabular-nums ${style.color} opacity-80 pb-1`}>
-            {percentual}%
-          </p>
-        </div>
-        <div className="mt-6 h-3 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${status === 'normal' ? 'bg-emerald-500' : status === 'alerta' ? 'bg-amber-500' : status === 'critico' ? 'bg-red-500' : 'bg-gray-600'}`}
-            style={{ width: `${percentual}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-xs text-gray-600 mt-1">
-          <span>0%</span>
-          <span>50%</span>
-          <span>100%</span>
-        </div>
-      </div>
+    <div className="grid grid-cols-2 gap-4">
+      <StatCard
+        icon={<BoltIcon className={`w-5 h-5 ${style.color}`} />}
+        label="Voltagem"
+        value={voltage.toFixed(2)}
+        unit="V"
+        style={style}
+      />
+      <StatCard
+        icon={<BatteryIcon percentual={percentual} status={status} charging={charging} className="w-9 h-[18px]" />}
+        label="Carga"
+        value={String(percentual)}
+        unit="%"
+        style={style}
+      />
     </div>
   );
 }
@@ -55,7 +91,12 @@ export default function Dashboard() {
       <StatusBar data={data} connected={connected} title="Painel Mesclado" />
 
       <main className="max-w-6xl mx-auto p-6 space-y-6">
-        <VoltageGauge voltage={data.voltagem} percentual={data.percentual} status={data.status} />
+        <VoltageGauge
+          voltage={data.voltagem}
+          percentual={data.percentual}
+          status={data.status}
+          charging={data.fonteConectada}
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <InfoCard label="Status" value={style.label} />

@@ -8,6 +8,8 @@ const SOCKET_URL = import.meta.env.PROD
 
 const INITIAL: Telemetria = {
   voltagem: 0,
+  percentual: 0,
+  horasRestantes: null,
   status: 'desligado',
   fonteConectada: false,
   modo: 'development',

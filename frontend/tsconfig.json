@@ -3,6 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "outDir": "dist",
+    "types": ["vite/client"],
     "paths": {
       "@shared/*": ["../shared/*"]
     }

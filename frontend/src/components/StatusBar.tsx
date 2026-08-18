@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import type { Telemetria } from '@shared/types';
 import { STATUS_MAP } from '../lib/statusMap';
+import { BatteryIcon } from './BatteryIcon';
 
 interface StatusBarProps {
   data: Telemetria;
@@ -43,9 +44,9 @@ export function StatusBar({ data, connected, title = 'MagoSystem' }: StatusBarPr
       </nav>
 
       <div className="flex items-center gap-4 text-sm">
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${style.bg} ${style.color}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-          {data.voltagem.toFixed(2)}V &middot; {data.percentual}% &middot; {style.label}
+        <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium ${style.bg} ${style.color}`}>
+          <BatteryIcon percentual={data.percentual} status={data.status} charging={data.fonteConectada} className="w-5 h-2.5" />
+          {data.percentual}% &middot; {data.voltagem.toFixed(2)}V &middot; {style.label}
         </span>
         <span className={`inline-flex items-center gap-1.5 text-xs ${connected ? 'text-emerald-400' : 'text-red-400'}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />

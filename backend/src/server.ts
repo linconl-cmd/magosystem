@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'node:http';
@@ -10,6 +10,10 @@ import { BatterySimulator } from './simulator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// .env fica na raiz do monorepo, independente de onde o processo for iniciado
+// (o script "dev" faz "cd backend" antes de rodar, mudando o cwd)
+loadEnv({ path: join(__dirname, '../../.env') });
 
 const PORT = Number(process.env.PORT) || 3001;
 const MODE = (process.env.NODE_ENV === 'production' ? 'production' : 'development') as const;
